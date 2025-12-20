@@ -3,31 +3,31 @@ name: Android Build
 on:
   push:
     branches:
-      - main  # Bu, ana dalına (branch) yeni kod yüklediğinde çalışır
+      - main  # Veya kodunu yüklediğin dalın adı
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Derleme için bulut sunucusu (Runner)
+    runs-on: ubuntu-latest  # Derleme için Linux sunucusu kullanır
 
     steps:
-    - uses: actions/checkout@v4  # 1. Proje dosyalarını indir
-    
-    # 2. Gerekli Bağımlılıkları Yükle (Buildozer ve Android araçları için)
-    - name: Install Dependencies
+    - uses: actions/checkout@v4  # Proje dosyalarını indir
+
+    - name: Install Dependencies  # Buildozer ve temel paketleri kurar
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libssl-dev
         pip install buildozer cython
 
-    # 3. Buildozer'ı çalıştırıp APK'yı oluştur
-    - name: Build Android APK
+    - name: Accept Android SDK Licenses  # KIRMIZI HATAYI ÇÖZEN LİSANS KABULÜ
+      run: yes | buildozer android update
+
+    - name: Build Android APK  # APK'yı derle
       run: |
         buildozer android debug
 
-    # 4. Oluşan APK'yı GitHub Artifact (Yapıt) olarak kaydet
-    # APK'yı indirmemiz için bu adım çok önemli!
-    - name: Upload Artifact
+    - name: Upload Artifact  # Oluşan APK'yı indirmek için kaydet
       uses: actions/upload-artifact@v4
       with:
-        name: lo-app-apk  # APK dosyalarının tutulacağı isim
-        path: bin/*.apk   # APK, Buildozer tarafından "bin" klasörüne atılır
+        name: lo-app-apk
+        path: bin/*.apk
+        
