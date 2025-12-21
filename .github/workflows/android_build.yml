@@ -3,37 +3,39 @@ name: Android Build
 on:
   push:
     branches:
-      - main  # Veya kodunu yüklediğin dalın adı
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Derleme için Linux sunucusu kullanır
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4  # 1. Proje dosyalarını indir
+    - uses: actions/checkout@v4
 
-    - name: Install Dependencies  # 2. Buildozer ve temel paketleri kurar
+    - name: Install Dependencies
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libssl-dev
         pip install buildozer cython
 
-    - name: Build Android APK
-      # KIRMIZI HATAYI ve TAKILMAYI ÇÖZMEK İÇİN ÇEVRE DEĞİŞKENLERİ KULLANILIYOR
+    # Bu adım, Buildozer'ın takılma ve lisans hatalarını çözer
+    - name: Setup and Clean Buildozer Environment
       env:
-        # Lisansları otomatik kabul et: 1. hatayı çözer
+        # Lisansları otomatik kabul et
         BUILD_ANDROID_SDK_ACCEPT_LICENSES: 1
-        # Buildozer'a terminalin etkileşimli olmadığını söyleyerek takılmayı çözer
+        # Buildozer'a otomasyon ortamında çalıştığını söyler (Takılmayı çözer)
         CI: 1
       run: |
-        # Önceki hatalı indirmeleri temizler
         buildozer clean
-        # SDK'yı günceller ve lisansları kabul eder (Artık takılmayacak!)
         buildozer android update
-        # APK'yı derle
-        buildozer android debug
 
-    - name: Upload Artifact  # Oluşan APK'yı indirmek için kaydet
+    - name: Build Android APK
+      env:
+        # Buildozer'a otomasyon ortamında çalıştığını söyler
+        CI: 1
+      run: buildozer android debug
+
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: lo-app-apk
