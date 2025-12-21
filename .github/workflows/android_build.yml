@@ -10,19 +10,27 @@ jobs:
     runs-on: ubuntu-latest  # Derleme için Linux sunucusu kullanır
 
     steps:
-    - uses: actions/checkout@v4  # Proje dosyalarını indir
+    - uses: actions/checkout@v4  # 1. Proje dosyalarını indir
 
-    - name: Install Dependencies  # Buildozer ve temel paketleri kurar
+    - name: Install Dependencies  # 2. Buildozer ve temel paketleri kurar
       run: |
         sudo apt update
         sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libssl-dev
         pip install buildozer cython
 
-    - name: Accept Android SDK Licenses  # KIRMIZI HATAYI ÇÖZEN LİSANS KABULÜ
-      run: yes | buildozer android update
-
-    - name: Build Android APK  # APK'yı derle
+    - name: Build Android APK
+      # KIRMIZI HATAYI ve TAKILMAYI ÇÖZMEK İÇİN ÇEVRE DEĞİŞKENLERİ KULLANILIYOR
+      env:
+        # Lisansları otomatik kabul et: 1. hatayı çözer
+        BUILD_ANDROID_SDK_ACCEPT_LICENSES: 1
+        # Buildozer'a terminalin etkileşimli olmadığını söyleyerek takılmayı çözer
+        CI: 1
       run: |
+        # Önceki hatalı indirmeleri temizler
+        buildozer clean
+        # SDK'yı günceller ve lisansları kabul eder (Artık takılmayacak!)
+        buildozer android update
+        # APK'yı derle
         buildozer android debug
 
     - name: Upload Artifact  # Oluşan APK'yı indirmek için kaydet
